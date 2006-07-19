@@ -1,7 +1,7 @@
 /*
  * \file DTTestPulseRange.cc
  *
- * $Date: 2006/02/21 19:09:46 $
+ * $Date: 2006/06/28 13:49:18 $
  * $Revision: 1.1 $
  * \author M. Zanetti - INFN Padova
  *
@@ -216,7 +216,7 @@ void DQMDTNoiseStandaloneTest::runTest() {
       for (vector<dqm::me_util::Channel>::iterator ch_it = badChannels.begin(); 
 	   ch_it != badChannels.end(); ch_it++) {
 	
-	theNoisyChannels.push_back(DTWireId(theLayer, (*ch_it).getBin()));
+	theNoisyChannels.push_back(DTWireId(theLayer, (*ch_it).getBin()-1));
 
       }
     }
