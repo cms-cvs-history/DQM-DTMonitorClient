@@ -1,8 +1,8 @@
 /*
  * \file DQMDTNoiseStandaloneTest.h
  *
- * $Date: 2006/05/24 17:21:37 $
- * $Revision: 1.4 $
+ * $Date: 2006/06/28 13:49:18 $
+ * $Revision: 1.1 $
  * \author M. Zanetti - INFN Padova
  *
 */
@@ -55,7 +55,7 @@ protected:
   void beginJob(const edm::EventSetup& c);
 
   /// Book the ME
-  void bookHistos(const DTLayerId& dtLayer);
+  void bookHistos(const DTLayerId& dtLayer, string histoTag);
 
   /// Analyze
   void analyze(const edm::Event& e, const edm::EventSetup& c);
@@ -70,10 +70,11 @@ protected:
   void tuneCuts(void);
 
   /// run quality tests;
-  void runTest(void);
+  void runDQMTest(void);
+  void runStandardTest(void);
 
   /// show channels that failed test
-  void showBadChannels(QCriterion *qc);
+  void drawSummaryNoise();
 
 private:
 
@@ -92,14 +93,18 @@ private:
   MonitorUserInterface * mui;
 
   // histograms: < DetID, Histogram >
-  map< uint32_t , MonitorElement* > occupancyHistos;
+  std::map< uint32_t , MonitorElement* > occupancyHistos;
 
   // collection of histograms' names
-  vector<string> histoNamesCollection;
+  std::vector<string> histoNamesCollection;
 
   // the collection of noisy channels
-  vector<DTWireId> theNoisyChannels;
+  std::vector<DTWireId> theNoisyChannels;
   
+  std::map<DTLayerId, float> noiseStatistics;
+
+  std::map< uint32_t , MonitorElement* > noiseAverageHistos;
+
   // quality tests
   NoisyChannelROOT* theNoiseTest;
 

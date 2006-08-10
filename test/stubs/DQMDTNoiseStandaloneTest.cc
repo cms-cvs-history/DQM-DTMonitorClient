@@ -1,8 +1,8 @@
 /*
  * \file DTTestPulseRange.cc
  *
- * $Date: 2006/06/28 13:49:18 $
- * $Revision: 1.1 $
+ * $Date: 2006/07/19 18:57:07 $
+ * $Revision: 1.2 $
  * \author M. Zanetti - INFN Padova
  *
  */
@@ -88,7 +88,7 @@ void DQMDTNoiseStandaloneTest::beginJob(const edm::EventSetup& context){
 }
 
 
-void DQMDTNoiseStandaloneTest::bookHistos(const DTLayerId& dtLayer) {
+void DQMDTNoiseStandaloneTest::bookHistos(const DTLayerId& dtLayer, string histoTag) {
 
   LogInfo("NoiseTestPrintOut")<<"[DQMDTNoiseStandaloneTest]: Booking";
 
@@ -98,29 +98,50 @@ void DQMDTNoiseStandaloneTest::bookHistos(const DTLayerId& dtLayer) {
   stringstream superLayer; superLayer << dtLayer.superlayer();	
   stringstream layer; layer << dtLayer.layer();	
 
-  string histoName =  
-    + "NoiseOccupancy_W" + wheel.str() 
-    + "_St" + station.str() 
-    + "_Sec" + sector.str() 
-    + "_SL" + superLayer.str() 
-    + "_L" + layer.str();
-  LogInfo("NoiseTestPrintOut")<<"[DQMDTNoiseStandaloneTest]: histoname "<<histoName;
+  if ( histoTag == "Occupancy" ) {
 
-  int nWires = muonGeom->layer(DTLayerId(dtLayer.wheel(),
-					 dtLayer.station(),
-					 dtLayer.sector(),
-					 dtLayer.superlayer(),
-					 dtLayer.layer()))->specificTopology().channels();
-  
-  occupancyHistos[DTLayerId(dtLayer.wheel(),
-			    dtLayer.station(),
-			    dtLayer.sector(),
-			    dtLayer.superlayer(),
-			    dtLayer.layer()).rawId()] = 
-    dbe->book1D(histoName,histoName,nWires,0,nWires);
+    string histoName =  
+      + "NoiseOccupancy_W" + wheel.str() 
+      + "_St" + station.str() 
+      + "_Sec" + sector.str() 
+      + "_SL" + superLayer.str() 
+      + "_L" + layer.str();
+    LogInfo("NoiseTestPrintOut")<<"[DQMDTNoiseStandaloneTest]: histoname "<<histoName;
+    
+    int nWires = muonGeom->layer(DTLayerId(dtLayer.wheel(),
+					   dtLayer.station(),
+					   dtLayer.sector(),
+					   dtLayer.superlayer(),
+					   dtLayer.layer()))->specificTopology().channels();
+    
+    occupancyHistos[DTLayerId(dtLayer.wheel(),
+			      dtLayer.station(),
+			      dtLayer.sector(),
+			      dtLayer.superlayer(),
+			      dtLayer.layer()).rawId()] = 
+      dbe->book1D(histoName,histoName,nWires,0,nWires);
+    
+    histoNamesCollection.push_back(histoName);
+  }
 
-  histoNamesCollection.push_back(histoName);
-  
+
+  if ( histoTag == "Average" ) {
+
+    string histoName =  
+      + "NoiseAverage_W" + wheel.str() 
+      + "_St" + station.str() 
+      + "_Sec" + sector.str() ;
+    LogInfo("NoiseTestPrintOut")<<"[DQMDTNoiseStandaloneTest]: histoname "<<histoName;
+    
+    
+    noiseAverageHistos[DTChamberId(dtLayer.wheel(),
+				   dtLayer.station(),
+				   dtLayer.sector()).rawId()] = 
+      dbe->book1D(histoName,histoName,12,1,13);
+
+  }
+
+
 }
 
 
@@ -147,17 +168,22 @@ void DQMDTNoiseStandaloneTest::analyze(const edm::Event& e, const edm::EventSetu
       // for clearness..
       uint32_t index = ((*dtLayerId_It).first).rawId();
 
-      // Occupancies
-      if (occupancyHistos.find(index) != occupancyHistos.end()) {
-	occupancyHistos.find(index)->second->Fill((*digiIt).wire());
-      } else {
-	bookHistos((*dtLayerId_It).first);
-	occupancyHistos.find(index)->second->Fill((*digiIt).wire());
+      // get only the hits before the time-box
+      if ( (*digiIt).countsTDC() < parameters.getUntrackedParameter<int>("tTrigNoise", 2800)) {
+
+	// Occupancies
+	if (occupancyHistos.find(index) != occupancyHistos.end()) {
+	  occupancyHistos.find(index)->second->Fill((*digiIt).wire());
+	} else {
+	  bookHistos((*dtLayerId_It).first, "Occupancy");
+	  occupancyHistos.find(index)->second->Fill((*digiIt).wire());
+	}
       }
-	
+
     }
   }
 }
+
 
     
 void DQMDTNoiseStandaloneTest::createQualityTests() {
@@ -179,7 +205,7 @@ void DQMDTNoiseStandaloneTest::createQualityTests() {
 
 
 
-void DQMDTNoiseStandaloneTest::runTest() {
+void DQMDTNoiseStandaloneTest::runDQMTest() {
 
   mui->runQTests(); // mui->update() would have the same result
 
@@ -224,38 +250,72 @@ void DQMDTNoiseStandaloneTest::runTest() {
   
 }
 
+void DQMDTNoiseStandaloneTest::runStandardTest() {
+
+  // Computing the normalization for noise rate estimation, assuming tTrig in tdcCounts 
+  const double ns_s = 1e9*(32/25);
+  double normalization = ns_s/float(parameters.getUntrackedParameter<int>("tTrigNoise", 2800)*nevents);
+
+
+  // loop on the noisy histos
+  for (map< uint32_t, MonitorElement*>::iterator h_it = occupancyHistos.begin();
+       h_it != occupancyHistos.end(); h_it++) {
+
+    // the layer
+    const DTLayerId theLayer((*h_it).first);
+
+    // noise average per layer
+    MonitorElementT<TNamed>* ob = dynamic_cast<MonitorElementT<TNamed>*>(occupancyHistos.find(theLayer.rawId())->second);
+    if (ob) {
+      
+      TH1F * noiseT = dynamic_cast<TH1F*> (ob->operator->());
+      if (noiseT) {
+
+	noiseT->Scale(normalization);
+	
+	float average=0;
+	float nOfChannels=0;
+	for (int i = 1; i <= noiseT->GetNbinsX(); i++){
+	  if (noiseT->GetBinContent(i) > parameters.getUntrackedParameter<int>("HzThreshold", 1000))
+	    theNoisyChannels.push_back(DTWireId(theLayer, i));
+	  // get rid of the dead channels
+	  else if (noiseT->GetBinContent(i)) {
+	    average += noiseT->GetBinContent(i); 
+	    nOfChannels++; 
+	  }
+	}
+	if (nOfChannels) noiseStatistics[theLayer] = average/noiseT->GetNbinsX();
+      }
+    }
+    
+  }
+
+}
+
 
 void DQMDTNoiseStandaloneTest::endJob() {
 
   // run the tests
-  runTest();
+  if (parameters.getUntrackedParameter<string>("runTest","StandardTest") == "DQMTest") { 
+    cout<<"[DQMDTNoiseStandaloneTest] Performing the standard noise analysis"<<endl;
+    runDQMTest();
+  }
+  if (parameters.getUntrackedParameter<string>("runTest","StandardTest") == "StandardTest") {
+    cout<<"[DQMDTNoiseStandaloneTest] Performing the standard noise analysis"<<endl;
+    runStandardTest();
+    drawSummaryNoise();
+  }
 
-  string theTag = parameters.getUntrackedParameter<string>("theTag","commissioning_StatusFlag");
+  // set the StatusFlag
+  string theTag = parameters.getUntrackedParameter<string>("theTag","mtcc_StatusFlag");
   DTStatusFlag * statusFlag = new DTStatusFlag(theTag);
 
   for ( vector<DTWireId>::iterator ch_it = theNoisyChannels.begin();
 	ch_it != theNoisyChannels.end(); ch_it++) {
     LogWarning("NoiseTestPrintOut")<<" The noisy channels are:"<<(*ch_it);
+    cout<<(*ch_it)<<" is noise"<<endl;
     statusFlag->setCellNoise((*ch_it),true); 
   }
-
-  // commit to the DB
-//   edm::Service<cond::service::PoolDBOutputService> myDBService;
-//   if( myDBService.isAvailable() ){
-//     try{
-//       myDBService->newValidityForNewPayload<DTStatusFlag>(statusFlag,myDBService->endOfTime());
-//     }catch(const cond::Exception& er){
-//       std::cout<<er.what()<<std::endl;
-//     }catch(const std::exception& er){
-//       std::cout<<"caught std::exception "<<er.what()<<std::endl;
-//     }catch(...){
-//       std::cout<<"Funny error"<<std::endl;
-//     }
-//   }else{
-//     std::cout<<"Service is unavailable"<<std::endl;
-//   }
-
-
 
   // commit to the DB
   edm::Service<cond::service::PoolDBOutputService> myDBservice;
@@ -273,5 +333,28 @@ void DQMDTNoiseStandaloneTest::endJob() {
   }catch(...){
     std::cout<<"Funny error"<<std::endl;
   }
+
+}
+
+
+void DQMDTNoiseStandaloneTest::drawSummaryNoise() {
+
+  /// Filling
+  for (map<DTLayerId,float>::iterator ns_it = noiseStatistics.begin();
+       ns_it != noiseStatistics.end(); ns_it++) {
+    
+    uint32_t indexCh = ((*ns_it).first).chamberId().rawId(); 
+    uint32_t indexL = ((*ns_it).first).superlayer()*4 + ((*ns_it).first).layer(); 
+    
+    if (noiseAverageHistos.find(indexCh) != noiseAverageHistos.end() ) {
+      noiseAverageHistos.find(indexCh)->second->Fill(indexL, (*ns_it).second);
+    } else {
+      bookHistos(((*ns_it).first), "Average");
+      noiseAverageHistos.find(indexCh)->second->Fill(indexL, (*ns_it).second);
+    }
+    
+  }
+  
+  
 
 }
