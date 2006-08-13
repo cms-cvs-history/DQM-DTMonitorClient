@@ -1,8 +1,8 @@
 /*
  * \file DTTestPulseRange.cc
  *
- * $Date: 2006/08/10 16:27:18 $
- * $Revision: 1.3 $
+ * $Date: 2006/08/13 11:12:32 $
+ * $Revision: 1.4 $
  * \author M. Zanetti - INFN Padova
  *
  */
@@ -284,7 +284,7 @@ void DQMDTNoiseStandaloneTest::runStandardTest() {
 	    nOfChannels++; 
 	  }
 	}
-	if (nOfChannels) noiseStatistics[theLayer] = average/noiseT->GetNbinsX();
+	if (nOfChannels) noiseStatistics[theLayer] = average/nOfChannels;
       }
     }
     
