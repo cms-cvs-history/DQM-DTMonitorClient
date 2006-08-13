@@ -1,8 +1,8 @@
 /*
  * \file DTTestPulseRange.cc
  *
- * $Date: 2006/07/19 18:57:07 $
- * $Revision: 1.2 $
+ * $Date: 2006/08/10 16:27:18 $
+ * $Revision: 1.3 $
  * \author M. Zanetti - INFN Padova
  *
  */
@@ -119,7 +119,7 @@ void DQMDTNoiseStandaloneTest::bookHistos(const DTLayerId& dtLayer, string histo
 			      dtLayer.sector(),
 			      dtLayer.superlayer(),
 			      dtLayer.layer()).rawId()] = 
-      dbe->book1D(histoName,histoName,nWires,0,nWires);
+      dbe->book1D(histoName,histoName,nWires,1,nWires+1);
     
     histoNamesCollection.push_back(histoName);
   }
@@ -344,7 +344,7 @@ void DQMDTNoiseStandaloneTest::drawSummaryNoise() {
        ns_it != noiseStatistics.end(); ns_it++) {
     
     uint32_t indexCh = ((*ns_it).first).chamberId().rawId(); 
-    uint32_t indexL = ((*ns_it).first).superlayer()*4 + ((*ns_it).first).layer(); 
+    uint32_t indexL = (((*ns_it).first).superlayer()-1)*4 + ((*ns_it).first).layer(); 
     
     if (noiseAverageHistos.find(indexCh) != noiseAverageHistos.end() ) {
       noiseAverageHistos.find(indexCh)->second->Fill(indexL, (*ns_it).second);
