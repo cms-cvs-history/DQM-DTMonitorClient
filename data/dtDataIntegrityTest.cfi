@@ -1,0 +1,10 @@
+module dataIntegrityTest = DTDataIntegrityTest{
+    untracked bool debug = false
+    untracked string folderRoot = ""
+    untracked string outputFile = "DataIntegrityTest.root"
+    untracked bool writeHisto = false	
+    untracked int32 nTimeBin = 9
+    untracked bool runningStandalone = true
+    untracked int32 diagnosticPrescale = 100
+    untracked bool doTimeHisto = false
+}

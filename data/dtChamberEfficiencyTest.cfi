@@ -1,0 +1,11 @@
+module chamberEfficiencyTest = DTChamberEfficiencyTest{
+    untracked bool debug = false
+    untracked string outputFile = "DTChamberEfficiencyTest.root"
+    untracked bool writeHisto = false
+    untracked string folderRoot = ""	
+    #Names of the quality tests: they must match those specified in "qtList"
+    untracked string XEfficiencyTestName = "ChEfficiencyInRangeX"
+    untracked string YEfficiencyTestName = "ChEfficiencyInRangeY"
+    untracked bool runningStandalone = true
+    untracked int32 diagnosticPrescale = 1
+}
