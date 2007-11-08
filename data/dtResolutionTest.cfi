@@ -1,7 +1,5 @@
 module resolutionTest = DTResolutionTest{
     untracked bool debug = false
-    untracked string outputFile = "DTResolutionTest.root"
-    untracked bool writeHisto = false
     untracked string folderRoot = ""
     untracked string histoTag = "hResDist"	
     

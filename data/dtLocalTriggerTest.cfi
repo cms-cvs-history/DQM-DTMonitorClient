@@ -2,7 +2,5 @@ module triggerTest = DTLocalTriggerTest{
     untracked bool runningStandalone = true
     untracked int32 diagnosticPrescale = 1
     untracked bool dataFromDDU = true
-    untracked string outputFile = "DTLocalTriggerTest.root"
     untracked string folderRoot = ""
-    untracked bool writeHisto = false
 }

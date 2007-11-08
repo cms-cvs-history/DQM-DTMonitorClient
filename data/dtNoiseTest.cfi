@@ -1,6 +1,5 @@
 module noiseTest = DTNoiseTest {
-    untracked bool debug = false
-    untracked bool writeHisto = false	
+    untracked bool debug = false	
     untracked int32 HzThreshold = 300
     untracked string meanTestName = "NoiseMeanInRange"
     untracked string folderRoot = ""

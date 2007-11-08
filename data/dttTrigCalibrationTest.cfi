@@ -5,5 +5,4 @@ module tTrigCalibrationTest = DTtTrigCalibrationTest{
     untracked string histoTag = "TimeBox"
     untracked bool runningStandalone = true
     untracked int32 diagnosticPrescale = 1
-    untracked bool writeHisto = false
 }
