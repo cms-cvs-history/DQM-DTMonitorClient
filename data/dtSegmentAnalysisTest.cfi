@@ -1,0 +1,10 @@
+module segmentTest = DTSegmentAnalysisTest{
+    untracked string folderRoot = ""
+    untracked int32 diagnosticPrescale=1
+    #Permetted percentual of CH with bad chi2 segments 
+    untracked int32 badCHpercentual = 10
+    #Permetted value of chi2 segment quality
+    untracked double chi2Threshold = 5
+    #Permetted percentual of segments with bad chi2
+    untracked int32 badSegmPercentual = 30
+}
