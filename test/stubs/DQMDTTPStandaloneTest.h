@@ -1,8 +1,8 @@
 /*
  * \file DQMDTTPStandaloneTest.h
  *
- * $Date: 2006/05/24 17:21:37 $
- * $Revision: 1.4 $
+ * $Date: 2006/06/28 13:49:18 $
+ * $Revision: 1.1 $
  * \author M. Zanetti - INFN Padova
  *
 */
@@ -17,12 +17,12 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
-#include "DQMServices/Core/interface/DaqMonitorBEInterface.h"
-#include "DQMServices/Daemon/interface/MonitorDaemon.h"
+#include "DQMServices/Core/interface/MonitorElement.h"
+#include "DQMServices/Core/interface/DQMStore.h"
 #include "DQMServices/Core/interface/QTestStatus.h"
 #include "DQMServices/Core/interface/DQMDefinitions.h"
-#include "DQMServices/UI/interface/MonitorUIRoot.h"
-#include "DQMServices/QualityTests/interface/QCriterionRoot.h"
+#include "DQMServices/Core/interface/DQMOldReceiver.h"
+#include "DQMServices/Core/interface/QTest.h"
 
 #include <memory>
 #include <iostream>
@@ -88,10 +88,10 @@ private:
   edm::ESHandle<DTRangeT0> tpRange;
 
   // back-end interface
-  DaqMonitorBEInterface * dbe;
+  DQMStore * dbe;
 
   // Monitor UI
-  MonitorUserInterface * mui;
+  DQMOldReceiver * mui;
 
   // the range whithin looking for the TP peak
   pair<int,int> tpValidRange;

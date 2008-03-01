@@ -1,7 +1,7 @@
 /*
  * \file DTTestPulseRange.cc
  *
- * $Date: 2006/02/21 19:09:46 $
+ * $Date: 2006/06/28 13:49:18 $
  * $Revision: 1.1 $
  * \author M. Zanetti - INFN Padova
  *
@@ -24,7 +24,9 @@
 #include <DataFormats/MuonDetId/interface/DTLayerId.h>
 
 // DQM
-#include "DQMServices/QualityTests/interface/QCriterionRoot.h"
+#include "DQMServices/Core/interface/QTest.h"
+#include "DQMServices/Core/interface/DQMStore.h"
+#include "DQMServices/Core/interface/MonitorElement.h"
 
 
 // DB
@@ -62,11 +64,11 @@ DQMDTTPStandaloneTest::DQMDTTPStandaloneTest(const edm::ParameterSet& ps): param
   criterionName = "meanWithinTheRangeTest";
 
   // get hold of back-end interface
-  dbe = edm::Service<DaqMonitorBEInterface>().operator->();
+  dbe = edm::Service<DQMStore>().operator->();
 
   // instantiate Monitor UI without connecting to any monitoring server
   // (i.e. "standalone mode")
-  mui = new MonitorUIRoot();
+  mui = new DQMOldReceiver();
 
 
 }
@@ -190,8 +192,8 @@ void DQMDTTPStandaloneTest::createQualityTests() {
 
     criterionName = (*n_it).first + "_test";
 
-    testsWithinRange[criterionName] = dynamic_cast<MEContentsProfWithinRangeROOT*> 
-      (mui->createQTest(ContentsProfWithinRangeROOT::getAlgoName(), criterionName ));
+    testsWithinRange[criterionName] = dynamic_cast<ContentsProfWithinRange*> 
+      (mui->createQTest(ContentsProfWithinRange::getAlgoName(), criterionName ));
     
     mui->useQTest((*n_it).first, criterionName);
     

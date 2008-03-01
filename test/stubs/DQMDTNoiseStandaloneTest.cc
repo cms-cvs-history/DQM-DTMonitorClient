@@ -1,8 +1,8 @@
 /*
  * \file DTTestPulseRange.cc
  *
- * $Date: 2006/08/13 11:12:32 $
- * $Revision: 1.4 $
+ * $Date: 2006/08/13 15:07:24 $
+ * $Revision: 1.5 $
  * \author M. Zanetti - INFN Padova
  *
  */
@@ -24,7 +24,9 @@
 #include <DataFormats/MuonDetId/interface/DTLayerId.h>
 
 // DQM
-#include "DQMServices/QualityTests/interface/QCriterionRoot.h"
+#include "DQMServices/Core/interface/QTest.h"
+#include "DQMServices/Core/interface/DQMStore.h"
+#include "DQMServices/Core/interface/MonitorElement.h"
 
 
 // DB
@@ -60,11 +62,11 @@ DQMDTNoiseStandaloneTest::DQMDTNoiseStandaloneTest(const edm::ParameterSet& ps):
   criterionName = "noiseTest";
 
   // get hold of back-end interface
-  dbe = edm::Service<DaqMonitorBEInterface>().operator->();
+  dbe = edm::Service<DQMStore>().operator->();
 
   // instantiate Monitor UI without connecting to any monitoring server
   // (i.e. "standalone mode")
-  mui = new MonitorUIRoot();
+  mui = new DQMOldReceiver();
 
 
 }
@@ -189,8 +191,8 @@ void DQMDTNoiseStandaloneTest::analyze(const edm::Event& e, const edm::EventSetu
 void DQMDTNoiseStandaloneTest::createQualityTests() {
 
 
-  theNoiseTest = dynamic_cast<MENoisyChannelROOT*> (mui->createQTest(NoisyChannelROOT::getAlgoName(), 
-								     criterionName ));
+  theNoiseTest = dynamic_cast<NoisyChannel*> (mui->createQTest(NoisyChannel::getAlgoName(), 
+							       criterionName ));
   
   for (vector<string>::iterator n_it = histoNamesCollection.begin(); 
        n_it != histoNamesCollection.end(); n_it++) 
