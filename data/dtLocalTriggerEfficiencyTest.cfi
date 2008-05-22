@@ -1,4 +1,4 @@
-module triggerTest = DTLocalTriggerTest{
+module triggerEfficiencyTest = DTLocalTriggerEfficiencyTest{
   
     # kind of trigger data processed by DTLocalTriggerTask
     untracked vstring hwSources = { "DCC" , "DDU" }
