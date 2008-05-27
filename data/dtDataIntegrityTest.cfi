@@ -4,7 +4,6 @@ module dataIntegrityTest = DTDataIntegrityTest{
     untracked string outputFile = "DataIntegrityTest.root"
     untracked bool writeHisto = false	
     untracked int32 nTimeBin = 9
-    untracked bool runningStandalone = true
-    untracked int32 diagnosticPrescale = 100
+    untracked int32 diagnosticPrescale = 1
     untracked bool doTimeHisto = false
 }
