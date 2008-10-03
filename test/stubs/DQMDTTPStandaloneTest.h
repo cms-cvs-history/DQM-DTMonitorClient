@@ -1,8 +1,8 @@
 /*
  * \file DQMDTTPStandaloneTest.h
  *
- * $Date: 2006/06/28 13:49:18 $
- * $Revision: 1.1 $
+ * $Date: 2008/03/01 00:39:52 $
+ * $Revision: 1.2 $
  * \author M. Zanetti - INFN Padova
  *
 */
@@ -54,6 +54,7 @@ protected:
 
   /// BeginJob (needed?)
   void beginJob(const edm::EventSetup& c);
+  void beginRun(const edm::Run& run,const edm::EventSetup& c);
 
   /// Book the ME
   void bookHistos(const DTLayerId& dtLayer);

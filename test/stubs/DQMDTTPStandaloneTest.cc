@@ -1,8 +1,8 @@
 /*
  * \file DTTestPulseRange.cc
  *
- * $Date: 2006/06/28 13:49:18 $
- * $Revision: 1.1 $
+ * $Date: 2008/03/01 00:39:52 $
+ * $Revision: 1.2 $
  * \author M. Zanetti - INFN Padova
  *
  */
@@ -86,12 +86,15 @@ void DQMDTTPStandaloneTest::beginJob(const edm::EventSetup& context){
   LogInfo("TPTestPrintOut")<<"[DQMDTTPStandaloneTest]: Begin Job";
   
   nevents = 0;
+}
+
+
+void DQMDTTPStandaloneTest::beginRun(const edm::Run& run, const edm::EventSetup& context){  
+  // Get the TP-range
+  context.get<DTRangeT0Rcd>().get(tpRange);
   
   // Get the geometry
   context.get<MuonGeometryRecord>().get(muonGeom);
-
-  // Get the TP-range
-  context.get<DTRangeT0Rcd>().get(tpRange);
 }
 
 
@@ -122,7 +125,7 @@ void DQMDTTPStandaloneTest::bookHistos(const DTLayerId& dtLayer) {
   
   // Setting the range 
   if ( parameters.getUntrackedParameter<bool>("readDB", false) ) 
-    tpRange->slRangeT0( dtLayer.superlayerId() , tpValidRange.first, tpValidRange.second);
+    tpRange->get( dtLayer.superlayerId() , tpValidRange.first, tpValidRange.second);
 
   cout<<"t0sRangeLowerBound "<<tpValidRange.first<<"; "
       <<"t0sRangeUpperBound "<<tpValidRange.second<<endl;
@@ -293,9 +296,10 @@ void DQMDTTPStandaloneTest::endJob() {
 
     for (int b = 0; b < nBins; b++) {
       if ( theBadChannels.find(DTWireId(theLayer, b)) ==  theBadChannels.end() )
-	t0->setCellT0(DTWireId(theLayer, b), 
-		      ((*h_it).second)->getBinContent(b),  
-		      ((*h_it).second)->getBinError(b));
+        // t0s and rms are TDC counts
+	t0->set(DTWireId(theLayer, b), 
+	        ((*h_it).second)->getBinContent(b),  
+	        ((*h_it).second)->getBinError(b),DTTimeUnits::counts);
     } 
   }
   
