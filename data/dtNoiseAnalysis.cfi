@@ -1,3 +1,0 @@
-module dtNoiseAnalysisMonitor = DTNoiseAnalysisTest {
-    untracked int32 noisyCellDef = 200
-}
