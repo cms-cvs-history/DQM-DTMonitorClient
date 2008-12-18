@@ -1,8 +1,0 @@
-module deadChannelTest = DTDeadChannelTest{
-    untracked bool debug = false
-    untracked string folderRoot = ""
-    #Names of the quality tests: they must match those specified in "qtList"
-    untracked string EfficiencyTestName = "OccupancyDiffInRange"
-    untracked bool runningStandalone = true
-    untracked int32 diagnosticPrescale = 1
-}
