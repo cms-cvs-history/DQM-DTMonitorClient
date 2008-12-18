@@ -1,8 +1,0 @@
-module tTrigCalibrationTest = DTtTrigCalibrationTest{
-    #Names of the quality test: it must match those specified in "qtList"
-    untracked string folderRoot = ""
-    untracked string tTrigTestName = "tTrigOffSet"
-    untracked string histoTag = "TimeBox"
-    untracked bool runningStandalone = true
-    untracked int32 diagnosticPrescale = 1
-}
