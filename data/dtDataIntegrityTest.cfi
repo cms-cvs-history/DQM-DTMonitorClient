@@ -1,8 +1,0 @@
-module dataIntegrityTest = DTDataIntegrityTest{
-    untracked bool debug = false
-    untracked string outputFile = "DataIntegrityTest"
-    untracked bool writeHisto = false	
-    untracked int32 nTimeBin = 9
-    untracked int32 diagnosticPrescale = 1
-    untracked bool doTimeHisto = false
-}
