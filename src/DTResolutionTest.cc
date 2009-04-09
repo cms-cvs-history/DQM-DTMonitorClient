@@ -3,8 +3,8 @@
 /*
  *  See header file for a description of this class.
  *
- *  $Date: 2009/03/06 10:50:04 $
- *  $Revision: 1.34 $
+ *  $Date: 2009/02/10 16:22:22 $
+ *  $Revision: 1.32 $
  *  \author G. Mila - INFN Torino
  */
 
@@ -72,18 +72,9 @@ void DTResolutionTest::beginJob(const edm::EventSetup& context){
   edm::LogVerbatim ("resolution") <<"[DTResolutionTest]: BeginJob"; 
 
   nevents = 0;
+
   // Get the geometry
   context.get<MuonGeometryRecord>().get(muonGeom);
-
-  // book the histos
-  for(int wheel=-2; wheel<3; wheel++){
-    bookHistos(wheel);
-  }
-  vector<DTChamber*> chambers = muonGeom->chambers();
-  for(vector<DTChamber*>::const_iterator chamber = chambers.begin();
-      chamber != chambers.end(); ++chamber) {
-    bookHistos((*chamber)->id());
-  }
 
 }
 
@@ -94,6 +85,7 @@ void DTResolutionTest::beginLuminosityBlock(LuminosityBlock const& lumiSeg, Even
 
   // Get the run number
   run = lumiSeg.run();
+
 }
 
 
@@ -164,35 +156,8 @@ void DTResolutionTest::endLuminosityBlock(LuminosityBlock const& lumiSeg, EventS
 	SlopeFilled[make_pair(i,j)]=false;
       }
     }
+
   }
-
-
-  // summary histos initialization
-  for(int wh=-2; wh<=3; wh++){
-    if(wh!=3){
-      for(int xBin=0; xBin<14; xBin++){
-	for(int yBin=0; yBin<11; yBin++){
-	  wheelMeanHistos[wh]->setBinContent(xBin,yBin,0);
-	  if(parameters.getUntrackedParameter<bool>("sigmaTest"))
-	    wheelSigmaHistos[wh]->setBinContent(xBin,yBin,0);
-	  if(parameters.getUntrackedParameter<bool>("slopeTest"))
-	    wheelSlopeHistos[wh]->setBinContent(xBin,yBin,0);
-	  }
-      }
-    }
-    else{
-      for(int xBin=0; xBin<14; xBin++){
-	for(int yBin=-2; yBin<3; yBin++){
-	  wheelMeanHistos[wh]->setBinContent(xBin,yBin,0);
-	  if(parameters.getUntrackedParameter<bool>("sigmaTest"))
-	    wheelSigmaHistos[wh]->setBinContent(xBin,yBin,0);
-	  if(parameters.getUntrackedParameter<bool>("slopeTest"))
-	    wheelSlopeHistos[wh]->setBinContent(xBin,yBin,0);
-	}
-      }
-    }
-  }
-
 
   edm::LogVerbatim ("resolution") <<"[DTResolutionTest]: "<<nLumiSegs<<" updates";
 
@@ -244,6 +209,7 @@ void DTResolutionTest::endLuminosityBlock(LuminosityBlock const& lumiSeg, EventS
 	if(BinNumber == 12) BinNumber=11;
 	float mean = (*res_histo).getMean(1);
 	float sigma = (*res_histo).getRMS(1);
+	if (MeanHistos.find(make_pair(slID.wheel(),slID.sector())) == MeanHistos.end()) bookHistos((*ch_it)->id());
 	MeanHistos.find(make_pair(slID.wheel(),slID.sector()))->second->setBinContent(BinNumber, mean);	
 	if(parameters.getUntrackedParameter<bool>("sigmaTest"))
 	  SigmaHistos.find(make_pair(slID.wheel(),slID.sector()))->second->setBinContent(BinNumber, sigma);
@@ -265,11 +231,13 @@ void DTResolutionTest::endLuminosityBlock(LuminosityBlock const& lumiSeg, EventS
 					 << "SuperLayer : " << slID << "\n"
 					 << "                    STEP : " << parameters.getUntrackedParameter<string>("STEP", "STEP3") << "\n"		
 					 << "Filling slope histogram with standard value -99. for bin " << BinNumber;
+	    if (SlopeHistos.find(make_pair(slID.wheel(),slID.sector())) == SlopeHistos.end()) bookHistos((*ch_it)->id());
 	    SlopeHistos.find(make_pair(slID.wheel(),slID.sector()))->second->setBinContent(BinNumber, -99.);
 	    continue;
 	  }
 	  TF1 *fitting = prof->GetFunction("pol1");
 	  double slope = fitting->GetParameter(1);
+	  if (SlopeHistos.find(make_pair(slID.wheel(),slID.sector())) == SlopeHistos.end()) bookHistos((*ch_it)->id());
 	  SlopeHistos.find(make_pair(slID.wheel(),slID.sector()))->second->setBinContent(BinNumber, slope);	
 	}
       }
@@ -296,10 +264,14 @@ void DTResolutionTest::endLuminosityBlock(LuminosityBlock const& lumiSeg, EventS
 				     << " sl: " << slFromBin((*channel).getBin())
 				     << " mean (cm): " << (*channel).getContents();
 	string HistoName = "W" + wheel.str() + "_Sec" + sector.str();
+	if (MeanHistos.find(make_pair((*hMean).first.first,(*hMean).first.second)) == MeanHistos.end()) bookHistos((*ch_it)->id());
 	if(parameters.getUntrackedParameter<bool>("meanWrongHisto")){
+	  if (MeanHistosSetRange.find(HistoName) == MeanHistosSetRange.end()) bookHistos((*ch_it)->id());
 	  MeanHistosSetRange.find(HistoName)->second->Fill((*channel).getBin());
+	  if (MeanHistosSetRange2D.find(HistoName) == MeanHistosSetRange2D.end()) bookHistos((*ch_it)->id());
 	  MeanHistosSetRange2D.find(HistoName)->second->Fill((*channel).getBin(),(*channel).getContents());
 	}
+	if(wheelMeanHistos.find((*hMean).first.first) == wheelMeanHistos.end()) bookHistos((*hMean).first.first);
 	// fill the wheel summary histos if the SL has not passed the test
 	if(abs((*channel).getContents())<parameters.getUntrackedParameter<double>("meanMaxLimit"))
 	  wheelMeanHistos[(*hMean).first.first]->Fill(((*hMean).first.second)-1,(*channel).getBin()-1,1);
@@ -344,8 +316,11 @@ void DTResolutionTest::endLuminosityBlock(LuminosityBlock const& lumiSeg, EventS
 				      << " sl: " << slFromBin((*channel).getBin())
 				      << " sigma (cm): " << (*channel).getContents();
 	  string HistoName = "W" + wheel.str() + "_Sec" + sector.str();
+	  if (SigmaHistosSetRange.find(HistoName) == SigmaHistosSetRange.end()) bookHistos((*ch_it)->id());
 	  SigmaHistosSetRange.find(HistoName)->second->Fill((*channel).getBin());
+	  if (SigmaHistosSetRange2D.find(HistoName) == SigmaHistosSetRange2D.end()) bookHistos((*ch_it)->id());
 	  SigmaHistosSetRange2D.find(HistoName)->second->Fill((*channel).getBin(),(*channel).getContents());
+	  if(wheelSigmaHistos.find((*hSigma).first.first) == wheelSigmaHistos.end()) bookHistos((*hSigma).first.first);
 	  // fill the wheel summary histos if the SL has not passed the test
 	  wheelSigmaHistos[(*hSigma).first.first]->Fill(((*hSigma).first.second)-1,(*channel).getBin()-1);
 	  // fill the cms summary histo if the percentual of SL which have not passed the test 
@@ -386,8 +361,11 @@ void DTResolutionTest::endLuminosityBlock(LuminosityBlock const& lumiSeg, EventS
 				      << " sl: " << slFromBin((*channel).getBin())
 				      << " slope: " << (*channel).getContents();
 	  string HistoName = "W" + wheel.str() + "_Sec" + sector.str();
+	  if (SlopeHistosSetRange.find(HistoName) == SlopeHistosSetRange.end()) bookHistos((*ch_it)->id());
 	  SlopeHistosSetRange.find(HistoName)->second->Fill((*channel).getBin());
+	  if (SlopeHistosSetRange2D.find(HistoName) == SlopeHistosSetRange2D.end()) bookHistos((*ch_it)->id());
 	  SlopeHistosSetRange2D.find(HistoName)->second->Fill((*channel).getBin(),(*channel).getContents());
+	  if(wheelSlopeHistos.find((*hSlope).first.first) == wheelSlopeHistos.end()) bookHistos((*hSlope).first.first);
 	  // fill the wheel summary histos if the SL has not passed the test
 	  wheelSlopeHistos[(*hSlope).first.first]->Fill(((*hSlope).first.second)-1,(*channel).getBin()-1);
 	  // fill the cms summary histo if the percentual of SL which have not passed the test 
@@ -526,7 +504,6 @@ void DTResolutionTest::bookHistos(const DTChamberId & ch) {
   (MeanHistos[make_pair(ch.wheel(),ch.sector())])->setBinLabel(9,"MB3_SL3",1);
   (MeanHistos[make_pair(ch.wheel(),ch.sector())])->setBinLabel(10,"MB4_SL1",1);
   (MeanHistos[make_pair(ch.wheel(),ch.sector())])->setBinLabel(11,"MB4_SL3",1);
-
 
   // Book the histo for the sigma value and set the axis labels
   if(parameters.getUntrackedParameter<bool>("sigmaTest")){
@@ -699,7 +676,7 @@ void DTResolutionTest::bookHistos(int wh) {
     wheelMeanHistos[wh]->setBinLabel(9,"MB3_SL3",2);
     wheelMeanHistos[wh]->setBinLabel(10,"MB4_SL1",2);
     wheelMeanHistos[wh]->setBinLabel(11,"MB4_SL3",2);
-  }
+  }  
 
   if(parameters.getUntrackedParameter<bool>("sigmaTest")){
     if(wheelSigmaHistos.find(wh) == wheelSigmaHistos.end()){
