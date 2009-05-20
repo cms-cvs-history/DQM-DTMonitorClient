@@ -5,19 +5,21 @@
  * *
  *  DQM Client to check the data integrity
  *
- *  $Date: 2008/06/03 16:33:51 $
- *  $Revision: 1.9 $
+ *  $Date: 2009/05/19 14:18:23 $
+ *  $Revision: 1.11 $
  *  \author S. Bolognesi - INFN TO
  *   
  */
 #include <FWCore/Framework/interface/EDAnalyzer.h>
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include <FWCore/Framework/interface/Event.h>
+#include "FWCore/Framework/interface/ESHandle.h"
 #include <FWCore/Framework/interface/EventSetup.h>
 #include <FWCore/Framework/interface/LuminosityBlock.h>
 
 class DQMStore;
 class MonitorElement;
+class DTReadOutMapping;
 
 class DTDataIntegrityTest: public edm::EDAnalyzer{
 
@@ -33,6 +35,9 @@ protected:
 
   /// BeginJob
   void beginJob(const edm::EventSetup& c);
+
+  /// BeginRun
+  void beginRun(const edm::Run& run, const edm::EventSetup& c);
  
   /// Analyze
   void analyze(const edm::Event& e, const edm::EventSetup& c);
@@ -44,29 +49,20 @@ protected:
   std::string getMEName(std::string histoType, int FEDId);
   /// Book the MEs
   void bookHistos(std::string histoType, int dduId);
-  void bookTimeHistos(std::string histoType, int dduId, int evNumber);
 
   void beginLuminosityBlock(edm::LuminosityBlock const& lumiSeg, edm::EventSetup const& context) ;
 
   /// DQM Client Diagnostic
   void endLuminosityBlock(edm::LuminosityBlock const& lumiSeg, edm::EventSetup const& c);
 
+private:
+  int readOutToGeometry(int dduId, int rosNumber, int& wheel, int& sector);
 
 private:
 
   //Number of onUpdates
   int nupdates;
-  //int nSTAEvents;
 
-
-  //Number of bin in time histo
-  int nTimeBin;
-  //If you want info VS time histos
-  bool doTimeHisto;
-  // switch to write histos to file
-  bool writeHisto;
-  // prefix of the name of the root file (lumi# and run# will be appended)
-  std::string outputFile;
   // prescale on the # of LS to update the test
   int prescaleFactor;
 
@@ -81,6 +77,8 @@ private:
 
 
   DQMStore* dbe;
+  edm::ESHandle<DTReadOutMapping> mapping;
+  
 
   // Monitor Elements
   // <histoType, <DDU index , histo> >    
