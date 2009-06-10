@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-from DQM.DTMonitorClient.dtChamberEfficiencyClient_cfi import *
+from DQM.DTMonitorClient.dtChamberEfficiencyTest_cfi import *
 from DQM.DTMonitorClient.dtSegmentAnalysisTest_cfi import *
 segmentTest.normalizeHistoPlots = True
 #segmentTest.detailedAnalysis = True
@@ -14,9 +14,5 @@ dtQualityTests = cms.EDFilter("QualityTester",
                          getQualityTestsFromFile = cms.untracked.bool(True)
                          )
 
-
-dtClients = cms.Sequence(segmentTest+
-                         dtResolutionAnalysisTest+
-                         dtChamberEfficiencyClient+
-                         dtOfflineSummaryClients)
+dtClients = cms.Sequence(segmentTest*dtOfflineSummaryClients)
 
